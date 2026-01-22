@@ -1,0 +1,12 @@
+[package]
+name = "eph"
+version = "0.1.0"
+edition = "2024"
+authors = ["Lucas McClean <lucas@mcclean.dev>"]
+description = "A modal CLI todo built for quick task movement."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/lucasmcclean/eph"
+categories = ["command-line-utilities"]
+keywords = ["todo", "cli", "terminal"]
+
+[dependencies]
