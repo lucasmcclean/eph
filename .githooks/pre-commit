@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Only run if there are Rust files staged
+STAGED=$(git diff --cached --name-only -- '*.rs')
+if [ -z "$STAGED" ]; then
+    exit 0
+fi
+
+if [ -t 1 ]; then
+    RED="\033[31m"
+    GREEN="\033[32m"
+    YELLOW="\033[33m"
+    RESET="\033[0m"
+else
+    RED=""
+    GREEN=""
+    YELLOW=""
+    RESET=""
+fi
+
+echo "${YELLOW}Checking code formatting...${RESET}"
+make check || {
+    echo "${RED}ERROR: check failed. Aborting commit.${RESET}" >&2
+    exit 1
+}
+
+echo "${GREEN}All checks passed${RESET}"
+exit 0
