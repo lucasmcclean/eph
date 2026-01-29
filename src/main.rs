@@ -1,4 +1,4 @@
-mod add;
+mod commands;
 
 use clap::{Parser, Subcommand};
 
@@ -11,8 +11,8 @@ struct Cli {
 }
 
 impl Cli {
-    /// Returns the command; defaults to [`Command::Interactive`] if one is not
-    /// provided.
+    // Returns the command; defaults to [`Command::Interactive`] if one is not
+    // provided.
     pub fn command(&self) -> Command {
         self.command.clone().unwrap_or(Command::Interactive)
     }
@@ -20,11 +20,20 @@ impl Cli {
 
 #[derive(Subcommand, Clone, Debug)]
 enum Command {
+    #[command(visible_alias = "i")]
     Interactive,
-    Add(add::Command),
-    Edit,
-    Done,
-    List,
+
+    #[command(visible_alias = "a")]
+    Add(commands::Add),
+
+    #[command(visible_alias = "d")]
+    Done(commands::Done),
+
+    #[command(visible_alias = "e")]
+    Edit(commands::Edit),
+
+    #[command(visible_alias = "l")]
+    List(commands::List),
 }
 
 fn main() {
@@ -33,8 +42,8 @@ fn main() {
     match cli.command() {
         Command::Interactive => println!("interactive"),
         Command::Add(a) => a.run(),
-        Command::Edit => println!("edit"),
-        Command::Done => println!("done"),
-        Command::List => println!("list"),
+        Command::Done(d) => d.run(),
+        Command::Edit(e) => e.run(),
+        Command::List(l) => l.run(),
     }
 }

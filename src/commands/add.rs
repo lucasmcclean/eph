@@ -2,20 +2,20 @@ use clap::Parser;
 
 #[derive(Parser, Clone, Debug)]
 #[command(name = "eph")]
-#[command(author, version, about, long_about = None)]
-pub struct Command {
+#[command(author, version, about)]
+pub struct Add {
     title: String,
-    #[arg(short, long, default_value = "std")]
-    context: Option<String>,
+    #[arg(short, long, default_value = "default")]
+    context: String,
     #[arg(short, long, default_value_t = 3)]
     priority: u8,
     #[arg(short, long, value_delimiter = ',')]
-    tags: Option<Vec<String>>,
+    tags: Vec<String>,
     #[arg(short, long)]
     description: Option<String>,
 }
 
-impl Command {
+impl Add {
     pub fn run(&self) {
         println!("Adding {}", self.title);
         println!(
@@ -23,7 +23,7 @@ impl Command {
             self.description.as_deref().unwrap_or("…")
         );
         println!("- tags: {:?}", self.tags);
-        println!("- context: {:?}", self.context);
-        println!("- priority: {:?}", self.priority);
+        println!("- context: {}", self.context);
+        println!("- priority: {}", self.priority);
     }
 }
