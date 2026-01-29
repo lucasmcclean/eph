@@ -1,8 +1,9 @@
 mod commands;
+mod priority;
 
 use clap::{Parser, Subcommand};
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 #[command(name = "eph")]
 #[command(author, version, about)]
 struct Cli {
@@ -14,14 +15,14 @@ impl Cli {
     // Returns the command; defaults to [`Command::Interactive`] if one is not
     // provided.
     pub fn command(&self) -> Command {
-        self.command.clone().unwrap_or(Command::Interactive)
+        self.command.clone().unwrap_or(Command::Interact)
     }
 }
 
-#[derive(Subcommand, Clone, Debug)]
+#[derive(Clone, Debug, Subcommand)]
 enum Command {
     #[command(visible_alias = "i")]
-    Interactive,
+    Interact,
 
     #[command(visible_alias = "a")]
     Add(commands::Add),
@@ -40,7 +41,7 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command() {
-        Command::Interactive => println!("interactive"),
+        Command::Interact => println!("interact"),
         Command::Add(a) => a.run(),
         Command::Done(d) => d.run(),
         Command::Edit(e) => e.run(),

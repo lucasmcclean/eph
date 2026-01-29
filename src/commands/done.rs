@@ -1,6 +1,6 @@
 use clap::Parser;
 
-#[derive(Parser, Clone, Debug)]
+#[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
 #[command(author, version, about)]
 pub struct Done {

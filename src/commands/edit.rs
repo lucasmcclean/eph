@@ -1,6 +1,8 @@
 use clap::Parser;
 
-#[derive(Parser, Clone, Debug)]
+use crate::priority::Priority;
+
+#[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
 #[command(author, version, about)]
 #[command(
@@ -21,20 +23,28 @@ use clap::Parser;
 pub struct Edit {
     // Either the runtime ID or title (fuzzy)
     identifier: String,
+
     #[arg(short = 'f', long, default_value = "std")]
     context: String,
+
     #[arg(short, long)]
     title: Option<String>,
+
     #[arg(short = 'c', long)]
     new_context: Option<String>,
-    #[arg(short, long)]
-    priority: Option<u8>,
+
+    #[arg(short, long, help = "Priority: 1–4 (high, medium, low, backlog)")]
+    priority: Option<Priority>,
+
     #[arg(short, long, value_delimiter = ',', conflicts_with = "new_tags")]
     add_tags: Vec<String>,
+
     #[arg(short, long, value_delimiter = ',', conflicts_with = "new_tags")]
     delete_tags: Vec<String>,
+
     #[arg(short, long, value_delimiter = ',', conflicts_with_all = ["add_tags", "delete_tags"])]
     new_tags: Vec<String>,
+
     #[arg(short = 'e', long)]
     description: Option<String>,
 }

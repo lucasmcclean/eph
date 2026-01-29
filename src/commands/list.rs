@@ -1,28 +1,39 @@
 use clap::Parser;
 
-#[derive(Parser, Clone, Debug)]
+use crate::priority::Priority;
+
+#[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
 #[command(author, version, about)]
 pub struct List {
     // If no contexts are provided, default to all
     #[arg(short, long)]
     contexts: Vec<String>,
+
     #[arg(
         short = 'p',
         long,
         value_delimiter = ',',
+        value_name = "PRIORITY[-PRIORITY][,PRIORITY[-PRIORITY]...]",
+        value_parser = parse_priority_or_range,
         conflicts_with = "exclude_priorities",
-        value_parser = parse_priority_range
+        help = "Include priorities 1–3 or ranges like low-high. Multiple
+                priorities or ranges can be comma-separated."
     )]
-    include_priorities: Vec<Vec<u8>>,
+    include_priorities: Vec<Vec<Priority>>,
+
     #[arg(
         short = 'x',
         long,
         value_delimiter = ',',
+        value_name = "PRIORITY[-PRIORITY][,PRIORITY[-PRIORITY]...]",
+        value_parser = parse_priority_or_range,
         conflicts_with = "include_priorities",
-        value_parser = parse_priority_range
+        help = "Exclude priorities 1–3 or ranges like low-high. Multiple
+                priorities or ranges can be comma-separated."
     )]
-    exclude_priorities: Vec<Vec<u8>>,
+    exclude_priorities: Vec<Vec<Priority>>,
+
     #[arg(
         short = 't',
         long,
@@ -30,6 +41,7 @@ pub struct List {
         conflicts_with = "exclude_tags"
     )]
     include_tags: Vec<String>,
+
     #[arg(
         short = 'e',
         long,
@@ -41,6 +53,8 @@ pub struct List {
 
 impl List {
     pub fn run(&self) {
+        let include_priorities = normalize(&self.include_priorities);
+        let exclude_priorities = normalize(&self.exclude_priorities);
         println!("Listing all tasks in:");
         if !self.contexts.is_empty() {
             println!("- Contexts: {:?}", self.contexts);
@@ -48,16 +62,10 @@ impl List {
             println!("- All contexts");
         }
         if !self.include_priorities.is_empty() {
-            println!(
-                "- Including priorities: {:?}",
-                normalize_priorities(&self.include_priorities)
-            );
+            println!("- Including priorities: {:?}", include_priorities);
         }
         if !self.exclude_priorities.is_empty() {
-            println!(
-                "- Excluding priorities: {:?}",
-                normalize_priorities(&self.exclude_priorities)
-            );
+            println!("- Excluding priorities: {:?}", exclude_priorities);
         }
         if !self.include_tags.is_empty() {
             println!("- Including tags: {:?}", self.include_tags);
@@ -68,27 +76,31 @@ impl List {
     }
 }
 
-fn parse_priority_range(s: &str) -> Result<Vec<u8>, String> {
-    let err_msg_invalid_u8 = "priority must be between 0 and 255";
-
+fn parse_priority_or_range(s: &str) -> Result<Vec<Priority>, String> {
+    let s = s.trim();
     if let Some((start, end)) = s.split_once('-') {
-        let start: u8 = start.parse().map_err(|_| err_msg_invalid_u8)?;
-        let end: u8 = end.parse().map_err(|_| err_msg_invalid_u8)?;
+        let (start, end) = {
+            let mut start: Priority = start.parse()?;
+            let mut end: Priority = end.parse()?;
+            if start > end {
+                (start, end) = (end, start)
+            }
+            (start, end)
+        };
 
-        if start > end {
-            return Err("range must be ascending".into());
-        }
-
-        Ok((start..=end).collect())
+        Ok(Priority::all()
+            .iter()
+            .copied()
+            .filter(|p| *p >= start && *p <= end)
+            .collect())
     } else {
-        let p: u8 = s.parse().map_err(|_| err_msg_invalid_u8)?;
-        Ok(vec![p])
+        Ok(vec![s.parse()?])
     }
 }
 
-fn normalize_priorities(v: &[Vec<u8>]) -> Vec<u8> {
-    let mut p: Vec<u8> = v.iter().flatten().copied().collect();
-    p.sort_unstable();
+fn normalize(priorities: &[Vec<Priority>]) -> Vec<Priority> {
+    let mut p: Vec<Priority> = priorities.iter().flatten().copied().collect();
+    p.sort();
     p.dedup();
     p
 }
