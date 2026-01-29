@@ -10,3 +10,4 @@ categories = ["command-line-utilities"]
 keywords = ["todo", "cli", "terminal"]
 
 [dependencies]
+clap = { version = "4.5.54", features = ["derive"] }
