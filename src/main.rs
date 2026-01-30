@@ -12,8 +12,6 @@ struct Cli {
 }
 
 impl Cli {
-    // Returns the command; defaults to [`Command::Interactive`] if one is not
-    // provided.
     pub fn command(&self) -> Command {
         self.command.clone().unwrap_or(Command::Interact)
     }

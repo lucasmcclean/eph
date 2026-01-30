@@ -9,6 +9,6 @@ pub struct Done {
 
 impl Done {
     pub fn run(&self) {
-        println!("Marked {} as done", self.identifier);
+        println!("done");
     }
 }

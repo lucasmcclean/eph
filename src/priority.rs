@@ -17,19 +17,6 @@ impl Priority {
             Priority::Backlog,
         ]
     }
-
-    pub fn _effective_priorities(include: &[Priority], exclude: &[Priority]) -> Vec<Priority> {
-        let mut priorities = if include.is_empty() {
-            vec![Priority::High, Priority::Medium, Priority::Low]
-        } else {
-            include.to_vec()
-        };
-
-        priorities.retain(|p| !exclude.contains(p));
-        priorities.sort();
-        priorities.dedup();
-        priorities
-    }
 }
 
 impl FromStr for Priority {
@@ -41,7 +28,7 @@ impl FromStr for Priority {
             "2" | "m" | "med" | "medium" => Ok(Priority::Medium),
             "3" | "l" | "lo" | "low" => Ok(Priority::Low),
             "4" | "b" | "back" | "backlog" => Ok(Priority::Backlog),
-            _ => Err("priority must be 1–4 (high|medium|low|backlog)".into()),
+            _ => Err("priority must be one of [high, medium, low, backlog]".into()),
         }
     }
 }

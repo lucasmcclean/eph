@@ -28,13 +28,6 @@ pub struct Add {
 
 impl Add {
     pub fn run(&self) {
-        println!("Adding {}", self.title);
-        println!(
-            "- description: {}",
-            self.description.as_deref().unwrap_or("…")
-        );
-        println!("- tags: {:?}", self.tags);
-        println!("- context: {}", self.context);
-        println!("- priority: {}", self.priority);
+        println!("add");
     }
 }

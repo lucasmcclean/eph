@@ -21,7 +21,6 @@ use crate::priority::Priority;
     )
 )]
 pub struct Edit {
-    // Either the runtime ID or title (fuzzy)
     identifier: String,
 
     #[arg(short = 'f', long, default_value = "std")]
@@ -51,27 +50,6 @@ pub struct Edit {
 
 impl Edit {
     pub fn run(&self) {
-        println!("Editing {}", self.identifier);
-        if let Some(title) = self.title.as_deref() {
-            println!("- New title: {}", title);
-        }
-        if let Some(context) = self.new_context.as_deref() {
-            println!("- New context: {}", context);
-        }
-        if let Some(priority) = self.priority {
-            println!("- New priority: {}", priority);
-        }
-        if !self.add_tags.is_empty() {
-            println!("- Added tags: {:?}", self.add_tags);
-        }
-        if !self.delete_tags.is_empty() {
-            println!("- Deleted tags: {:?}", self.delete_tags);
-        }
-        if !self.new_tags.is_empty() {
-            println!("- New tags: {:?}", self.new_tags);
-        }
-        if let Some(description) = self.description.as_deref() {
-            println!("- New description: {}", description);
-        }
+        println!("edit");
     }
 }
