@@ -11,7 +11,7 @@ use crate::task::Priority;
             .required(true)
             .args([
                 "title",
-                "new_context",
+                "context",
                 "priority",
                 "add_tags",
                 "delete_tags",
@@ -23,16 +23,16 @@ use crate::task::Priority;
 pub struct Edit {
     identifier: String,
 
-    #[arg(short = 'f', long, default_value = "std")]
-    context: String,
+    #[arg(short, long)]
+    in_context: Option<String>,
 
     #[arg(short, long)]
     title: Option<String>,
 
     #[arg(short = 'c', long)]
-    new_context: Option<String>,
+    to_context: Option<String>,
 
-    #[arg(short, long, help = "Priority: 1–4 (high, medium, low, backlog)")]
+    #[arg(short, long, help = "Priority: one of high, medium, low, backlog")]
     priority: Option<Priority>,
 
     #[arg(short, long, value_delimiter = ',', conflicts_with = "new_tags")]
