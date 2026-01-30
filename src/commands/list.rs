@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 
 use clap::Parser;
 
-use crate::priority::Priority;
+use crate::task::Priority;
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
