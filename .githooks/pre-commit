@@ -1,21 +1,24 @@
 #!/bin/sh
 
-# Only run if there are Rust files staged
-STAGED=$(git diff --cached --name-only -- '*.rs')
-if [ -z "$STAGED" ]; then
-    exit 0
-fi
-
 if [ -t 1 ]; then
     RED="\033[31m"
     GREEN="\033[32m"
     YELLOW="\033[33m"
+    CYAN="\033[36m"
     RESET="\033[0m"
 else
     RED=""
     GREEN=""
     YELLOW=""
+    CYAN=""
     RESET=""
+fi
+
+# Only run if there are Rust files staged
+STAGED=$(git diff --cached --name-only -- '*.rs')
+if [ -z "$STAGED" ]; then
+    echo "${CYAN}No files to check${RESET}"
+    exit 0
 fi
 
 echo "${YELLOW}Checking code formatting...${RESET}"
