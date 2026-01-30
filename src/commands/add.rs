@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::task::Priority;
+use crate::task::{Priority, Task};
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
@@ -27,7 +27,10 @@ pub struct Add {
 }
 
 impl Add {
-    pub fn run(&self) {
-        println!("add");
+    pub fn run(self) {
+        let task = Task::new(self.title, self.context, self.priority)
+            .with_tags(self.tags)
+            .with_description_opt(self.description);
+        println!("Added {}", task);
     }
 }

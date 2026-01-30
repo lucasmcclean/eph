@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Priority {
     High = 1,
     Medium = 2,
