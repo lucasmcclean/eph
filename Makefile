@@ -24,3 +24,4 @@ fmt:
 check:
 	@cargo fmt --all --check
 	@cargo sort-derives --check
+	@cargo clippy
