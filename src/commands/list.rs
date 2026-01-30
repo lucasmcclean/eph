@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use clap::Parser;
 
 use crate::priority::Priority;
@@ -6,101 +8,65 @@ use crate::priority::Priority;
 #[command(name = "eph")]
 #[command(author, version, about)]
 pub struct List {
-    // If no contexts are provided, default to all
     #[arg(short, long)]
     contexts: Vec<String>,
 
     #[arg(
         short = 'p',
-        long,
+        long = "priorities",
         value_delimiter = ',',
-        value_name = "PRIORITY[-PRIORITY][,PRIORITY[-PRIORITY]...]",
-        value_parser = parse_priority_or_range,
-        conflicts_with = "exclude_priorities",
-        help = "Include priorities 1–3 or ranges like low-high. Multiple
-                priorities or ranges can be comma-separated."
+        value_name = "PRIORITY[-PRIORITY][,...]",
+        value_parser = parse_priority_ranges,
+        help = "Include priorities 1–3 or ranges like low-high."
     )]
-    include_priorities: Vec<Vec<Priority>>,
+    _priority_ranges: Vec<Vec<Priority>>,
 
-    #[arg(
-        short = 'x',
-        long,
-        value_delimiter = ',',
-        value_name = "PRIORITY[-PRIORITY][,PRIORITY[-PRIORITY]...]",
-        value_parser = parse_priority_or_range,
-        conflicts_with = "include_priorities",
-        help = "Exclude priorities 1–3 or ranges like low-high. Multiple
-                priorities or ranges can be comma-separated."
-    )]
-    exclude_priorities: Vec<Vec<Priority>>,
+    #[arg(skip)]
+    priorities: OnceLock<Vec<Priority>>,
 
-    #[arg(
-        short = 't',
-        long,
-        value_delimiter = ',',
-        conflicts_with = "exclude_tags"
-    )]
+    #[arg(short = 't', long, value_delimiter = ',')]
     include_tags: Vec<String>,
-
-    #[arg(
-        short = 'e',
-        long,
-        value_delimiter = ',',
-        conflicts_with = "include_tags"
-    )]
-    exclude_tags: Vec<String>,
 }
 
 impl List {
     pub fn run(&self) {
-        let include_priorities = normalize(&self.include_priorities);
-        let exclude_priorities = normalize(&self.exclude_priorities);
-        println!("Listing all tasks in:");
-        if !self.contexts.is_empty() {
-            println!("- Contexts: {:?}", self.contexts);
-        } else {
-            println!("- All contexts");
-        }
-        if !self.include_priorities.is_empty() {
-            println!("- Including priorities: {:?}", include_priorities);
-        }
-        if !self.exclude_priorities.is_empty() {
-            println!("- Excluding priorities: {:?}", exclude_priorities);
-        }
-        if !self.include_tags.is_empty() {
-            println!("- Including tags: {:?}", self.include_tags);
-        }
-        if !self.exclude_tags.is_empty() {
-            println!("- Excluding tags: {:?}", self.exclude_tags);
-        }
+        println!("list: {:?}", self.priorities())
+    }
+
+    pub fn priorities(&self) -> &[Priority] {
+        self.priorities
+            .get_or_init(|| normalize_priority_ranges(&self._priority_ranges))
     }
 }
 
-fn parse_priority_or_range(s: &str) -> Result<Vec<Priority>, String> {
+fn parse_priority_ranges(s: &str) -> Result<Vec<Priority>, String> {
     let s = s.trim();
-    if let Some((start, end)) = s.split_once('-') {
-        let (start, end) = {
-            let mut start: Priority = start.parse()?;
-            let mut end: Priority = end.parse()?;
-            if start > end {
-                (start, end) = (end, start)
-            }
-            (start, end)
-        };
 
-        Ok(Priority::all()
+    if let Some((a, b)) = s.split_once('-') {
+        let start: Priority = a
+            .parse()
+            .map_err(|_| format!("'{}' is not one of [high, medium, low, backlog]", a))?;
+        let end: Priority = b
+            .parse()
+            .map_err(|_| format!("'{}' is not one of [high, medium, low, backlog]", b))?;
+
+        let (start, end) = (start.min(end), start.max(end));
+
+        return Ok(Priority::all()
             .iter()
             .copied()
             .filter(|p| *p >= start && *p <= end)
-            .collect())
-    } else {
-        Ok(vec![s.parse()?])
+            .collect());
     }
+
+    s.parse()
+        .map_err(|_| format!("'{}' is not one of [high, medium, low, backlog]", s))
+        .map(|p| vec![p])
 }
 
-fn normalize(priorities: &[Vec<Priority>]) -> Vec<Priority> {
-    let mut p: Vec<Priority> = priorities.iter().flatten().copied().collect();
-    p.sort();
-    p.dedup();
-    p
+fn normalize_priority_ranges(priority_ranges: &[Vec<Priority>]) -> Vec<Priority> {
+    let mut priorities: Vec<Priority> = priority_ranges.iter().flatten().copied().collect();
+    priorities.sort_unstable();
+    priorities.dedup();
+    priorities
 }
