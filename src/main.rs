@@ -41,9 +41,9 @@ fn main() {
 
     match cli.command() {
         Command::Interact => println!("interact"),
-        Command::Add(a) => a.run(),
-        Command::Done(d) => d.run(),
-        Command::Edit(e) => e.run(),
-        Command::List(l) => l.run(),
+        Command::Add(add) => add.run(),
+        Command::Done(done) => done.run(),
+        Command::Edit(edit) => edit.run(),
+        Command::List(list) => list.run(),
     }
 }
