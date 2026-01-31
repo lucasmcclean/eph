@@ -11,7 +11,7 @@ use crate::task::Priority;
             .required(true)
             .args([
                 "title",
-                "context",
+                "to_context",
                 "priority",
                 "add_tags",
                 "delete_tags",
