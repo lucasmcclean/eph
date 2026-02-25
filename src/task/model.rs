@@ -7,6 +7,7 @@ use crate::task::Priority;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Task {
+    // What's not serializing?
     id: Uuid,
     pub title: String,
     pub context: String,

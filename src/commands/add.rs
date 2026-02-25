@@ -1,6 +1,9 @@
 use clap::Parser;
 
-use crate::task::{Priority, Task};
+use crate::{
+    storage::{DataPath, append},
+    task::{Priority, Task},
+};
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
@@ -31,6 +34,9 @@ impl Add {
         let task = Task::new(self.title, self.context, self.priority)
             .with_tags(self.tags)
             .with_description_opt(self.description);
-        println!("Added {}", task);
+        match append(DataPath::Default.resolve(), task) {
+            Ok(_) => println!("Task successfully added"),
+            Err(err) => println!("{}", err),
+        }
     }
 }

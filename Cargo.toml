@@ -11,6 +11,8 @@ keywords = ["todo", "cli", "terminal"]
 
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }
+directories = "6.0.0"
 serde = { version = "1.0.228", features = ["derive"] }
+tempfile = "3.25.0"
 toml = "0.9.11"
 uuid = { version = "1.20.0", features = ["serde", "v4"] }

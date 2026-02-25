@@ -2,7 +2,10 @@ use std::sync::OnceLock;
 
 use clap::Parser;
 
-use crate::task::Priority;
+use crate::{
+    storage::{DataPath, load},
+    task::Priority,
+};
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
@@ -30,10 +33,24 @@ pub struct List {
 
 impl List {
     pub fn run(&self) {
-        println!("list: {:?}", self.priorities())
+        let tasks = load(DataPath::Default.resolve()).unwrap();
+        let filtered = tasks
+            .into_iter()
+            .filter(|task| self.contexts.is_empty() || self.contexts.contains(&task.context))
+            .filter(|task| {
+                self.priorities().is_empty() || self.priorities().contains(&task.priority)
+            })
+            .filter(|task| {
+                self.include_tags.is_empty()
+                    || task.tags.iter().any(|t| self.include_tags.contains(t))
+            });
+
+        for task in filtered {
+            println!("{:?}", task);
+        }
     }
 
-    pub fn priorities(&self) -> &[Priority] {
+    fn priorities(&self) -> &[Priority] {
         self.priorities
             .get_or_init(|| normalize_priority_ranges(&self._priority_ranges))
     }
