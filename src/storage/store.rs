@@ -1,3 +1,4 @@
+use crate::storage::file::TaskFile;
 use crate::task::Task;
 use std::fs;
 use std::io::Write;
@@ -11,7 +12,11 @@ pub fn store<P: AsRef<Path>>(path: P, tasks: &[Task]) -> Result<(), Box<dyn std:
         fs::create_dir_all(parent)?;
     }
 
-    let tasks_toml = toml::to_string_pretty(tasks)?;
+    let task_file = TaskFile {
+        tasks: tasks.to_vec(),
+    };
+
+    let tasks_toml = toml::to_string_pretty(&task_file)?;
 
     let mut tmp_file = NamedTempFile::new_in(path.parent().unwrap())?;
     tmp_file.write_all(tasks_toml.as_bytes())?;

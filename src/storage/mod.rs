@@ -1,4 +1,5 @@
 mod data_path;
+pub mod file;
 pub mod load;
 pub mod store;
 

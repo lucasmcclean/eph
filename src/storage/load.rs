@@ -1,6 +1,6 @@
 use std::{fs, io, path::Path};
 
-use crate::task::Task;
+use crate::{storage::file::TaskFile, task::Task};
 
 pub fn load<P: AsRef<Path>>(path: P) -> Result<Vec<Task>, Box<dyn std::error::Error>> {
     let path = path.as_ref();
@@ -13,6 +13,6 @@ pub fn load<P: AsRef<Path>>(path: P) -> Result<Vec<Task>, Box<dyn std::error::Er
         Err(err) => return Err(err.into()),
     };
 
-    let tasks: Vec<Task> = toml::from_str(&tasks_toml)?;
-    Ok(tasks)
+    let task_file: TaskFile = toml::from_str(&tasks_toml)?;
+    Ok(task_file.tasks)
 }
