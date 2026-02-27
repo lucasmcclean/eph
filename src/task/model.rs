@@ -1,5 +1,6 @@
-use std::fmt;
+use std::fmt::{self, Display, Formatter};
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -14,6 +15,8 @@ pub struct Task {
     pub priority: Priority,
     pub tags: Vec<String>,
     pub description: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
 }
 
 impl Task {
@@ -25,6 +28,8 @@ impl Task {
             priority,
             tags: Vec::new(),
             description: None,
+            created_at: Utc::now(),
+            completed_at: None,
         }
     }
 
@@ -48,8 +53,8 @@ impl Task {
     }
 }
 
-impl fmt::Display for Task {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Task {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "[{}] {} ({})", self.priority, self.title, self.context)?;
 
         for tag in &self.tags {

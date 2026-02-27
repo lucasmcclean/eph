@@ -10,6 +10,7 @@ categories = ["command-line-utilities"]
 keywords = ["todo", "cli", "terminal"]
 
 [dependencies]
+chrono = { version = "0.4.44", features = ["serde"] }
 clap = { version = "4.5.54", features = ["derive"] }
 directories = "6.0.0"
 serde = { version = "1.0.228", features = ["derive"] }
