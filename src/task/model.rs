@@ -48,7 +48,7 @@ impl Task {
         self
     }
 
-    pub fn _id(&self) -> Uuid {
+    pub fn id(&self) -> Uuid {
         self.id
     }
 }
