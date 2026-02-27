@@ -43,7 +43,7 @@ impl List {
             });
 
         for task in filtered {
-            println!("{:?}", task);
+            println!("{}", task);
         }
     }
 
