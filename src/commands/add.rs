@@ -1,7 +1,7 @@
 use clap::Parser;
 
 use crate::{
-    storage::{DataPath, append},
+    storage,
     task::{Priority, Task},
 };
 
@@ -34,7 +34,8 @@ impl Add {
         let task = Task::new(self.title, self.context, self.priority)
             .with_tags(self.tags)
             .with_description_opt(self.description);
-        match append(DataPath::Default.resolve(), task) {
+        let result = storage::append(storage::DataPath::default(), task);
+        match result {
             Ok(_) => println!("Task successfully added"),
             Err(err) => println!("{}", err),
         }

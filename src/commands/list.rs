@@ -2,10 +2,7 @@ use std::sync::OnceLock;
 
 use clap::Parser;
 
-use crate::{
-    storage::{DataPath, load},
-    task::Priority,
-};
+use crate::{storage, task::Priority};
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
@@ -33,7 +30,7 @@ pub struct List {
 
 impl List {
     pub fn run(&self) {
-        let tasks = load(DataPath::Default.resolve()).unwrap();
+        let tasks = storage::load(storage::DataPath::default()).unwrap();
         let filtered = tasks
             .into_iter()
             .filter(|task| self.contexts.is_empty() || self.contexts.contains(&task.context))

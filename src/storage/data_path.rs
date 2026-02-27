@@ -1,24 +1,27 @@
-use std::path::PathBuf;
-
-use directories::ProjectDirs;
+use std::path::{Path, PathBuf};
 
 const BIN_NAME: &str = env!("CARGO_BIN_NAME");
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DataPath {
-    Default,
+    Default(PathBuf),
     // Custom(PathBuf),
 }
 
-impl DataPath {
-    pub fn resolve(self) -> PathBuf {
-        match self {
-            DataPath::Default => self.default_data_path(),
-            // DataPath::Custom(path) => path,
-        }
-    }
+impl Default for DataPath {
+    fn default() -> Self {
+        let dirs = directories::ProjectDirs::from("", "", BIN_NAME)
+            .expect("Couldn't determine data directory.");
 
-    fn default_data_path(self) -> PathBuf {
-        let dirs = ProjectDirs::from("", "", BIN_NAME).expect("Couldn't determine data directory.");
-        dirs.data_dir().join("tasks.toml")
+        Self::Default(dirs.data_dir().join("tasks.toml"))
+    }
+}
+
+impl AsRef<Path> for DataPath {
+    fn as_ref(&self) -> &Path {
+        match self {
+            DataPath::Default(path) => path.as_path(),
+            // DataPath::Custom(path) => path.as_path(),
+        }
     }
 }
