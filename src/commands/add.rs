@@ -33,7 +33,7 @@ impl Add {
     pub fn run(self) {
         let task = Task::new(self.title, self.context, self.priority)
             .with_tags(self.tags)
-            .with_description_opt(self.description);
+            .with_description(self.description);
         let result = storage::append(storage::DataPath::default(), task);
         match result {
             Ok(_) => println!("Task successfully added"),

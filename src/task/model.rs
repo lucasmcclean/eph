@@ -8,7 +8,6 @@ use crate::task::Priority;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Task {
-    // What's not serializing?
     id: Uuid,
     pub title: String,
     pub context: String,
@@ -38,12 +37,7 @@ impl Task {
         self
     }
 
-    pub fn _with_description(mut self, description: String) -> Self {
-        self.description = Some(description);
-        self
-    }
-
-    pub fn with_description_opt(mut self, description: Option<String>) -> Self {
+    pub fn with_description(mut self, description: Option<String>) -> Self {
         self.description = description;
         self
     }
