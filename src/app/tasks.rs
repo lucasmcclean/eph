@@ -3,7 +3,10 @@ use std::error::Error;
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::{storage, task::Task};
+use crate::{
+    storage,
+    task::{Task, TaskPatch},
+};
 
 pub fn add_task(task: Task) -> Result<(), Box<dyn Error>> {
     storage::append(storage::DataPath::default(), task)
@@ -35,5 +38,29 @@ pub fn complete_task(identifier: Uuid) -> CompletionStatus {
     match storage::store(storage::DataPath::default(), &tasks) {
         Ok(_) => CompletionStatus::Marked,
         Err(e) => CompletionStatus::StorageError(e),
+    }
+}
+
+pub enum EditStatus {
+    Updated,
+    NotFound,
+    StorageError(Box<dyn Error>),
+}
+
+pub fn edit_task(task_patch: TaskPatch) -> EditStatus {
+    let mut tasks = match storage::load(storage::DataPath::default()) {
+        Ok(tasks) => tasks,
+        Err(e) => return EditStatus::StorageError(e),
+    };
+
+    let Some(task) = tasks.iter_mut().find(|task| task.id() == task_patch.id()) else {
+        return EditStatus::NotFound;
+    };
+
+    task_patch.apply_to(task);
+
+    match storage::store(storage::DataPath::default(), &tasks) {
+        Ok(_) => EditStatus::Updated,
+        Err(e) => EditStatus::StorageError(e),
     }
 }
