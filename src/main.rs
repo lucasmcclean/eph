@@ -1,3 +1,4 @@
+mod app;
 mod commands;
 mod storage;
 mod task;
@@ -14,14 +15,16 @@ struct Cli {
 
 impl Cli {
     pub fn command(&self) -> Command {
-        self.command.clone().unwrap_or(Command::Interact)
+        self.command
+            .clone()
+            .unwrap_or_else(|| Command::Interact(commands::Interact::default()))
     }
 }
 
 #[derive(Clone, Debug, Subcommand)]
 enum Command {
     #[command(visible_alias = "i")]
-    Interact,
+    Interact(commands::Interact),
 
     #[command(visible_alias = "a")]
     Add(commands::Add),
@@ -40,7 +43,7 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command() {
-        Command::Interact => println!("interact"),
+        Command::Interact(interact) => interact.run(),
         Command::Add(add) => add.run(),
         Command::Done(done) => done.run(),
         Command::Edit(edit) => edit.run(),
