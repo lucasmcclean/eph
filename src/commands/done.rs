@@ -16,7 +16,9 @@ impl Done {
             CompletionStatus::Marked => println!("Marked complete"),
             CompletionStatus::AlreadyMarked => println!("Already marked complete"),
             CompletionStatus::NotFound => println!("No task with that ID exists"),
-            CompletionStatus::StorageError(_) => println!("Error storing updated task"),
+            CompletionStatus::StorageError(err) => {
+                eprintln!("Failed to save task: {}", err)
+            }
         }
     }
 }
