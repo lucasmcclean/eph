@@ -13,6 +13,7 @@ use crate::{
     group(
         clap::ArgGroup::new("changes")
             .required(true)
+            .multiple(true)
             .args([
                 "title",
                 "context",
