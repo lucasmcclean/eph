@@ -2,7 +2,10 @@ use std::sync::OnceLock;
 
 use clap::Parser;
 
-use crate::{storage, task::Priority};
+use crate::{
+    app::tasks::filter_tasks,
+    task::{Priority, TaskFilter},
+};
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
@@ -30,17 +33,12 @@ pub struct List {
 
 impl List {
     pub fn run(&self) {
-        let tasks = storage::load(storage::DataPath::default()).unwrap();
-        let filtered = tasks
-            .into_iter()
-            .filter(|task| self.contexts.is_empty() || self.contexts.contains(&task.context))
-            .filter(|task| {
-                self.priorities().is_empty() || self.priorities().contains(&task.priority)
-            })
-            .filter(|task| {
-                self.include_tags.is_empty()
-                    || task.tags.iter().any(|t| self.include_tags.contains(t))
-            });
+        let task_filter = TaskFilter::new()
+            .with_tags(&self.include_tags)
+            .with_contexts(&self.contexts)
+            .with_priorities(self.priorities());
+
+        let filtered = filter_tasks(&task_filter);
 
         for task in filtered {
             println!("{}", task);
