@@ -5,11 +5,32 @@ use uuid::Uuid;
 
 use crate::{
     storage,
-    task::{Task, TaskPatch},
+    task::{Task, TaskFilter, TaskPatch},
 };
 
-pub fn add_task(task: Task) -> Result<(), Box<dyn Error>> {
+fn load_tasks() -> Result<Vec<Task>, Box<dyn Error>> {
+    storage::load(storage::DataPath::default())
+}
+
+fn store_tasks(tasks: Vec<Task>) -> Result<(), Box<dyn Error>> {
+    storage::store(storage::DataPath::default(), &tasks)
+}
+
+fn append_task(task: Task) -> Result<(), Box<dyn Error>> {
     storage::append(storage::DataPath::default(), task)
+}
+
+pub fn add_task(task: Task) -> Result<(), Box<dyn Error>> {
+    append_task(task)
+}
+
+pub fn filter_tasks(filter: &TaskFilter) -> Vec<Task> {
+    let tasks = load_tasks().unwrap();
+
+    tasks
+        .into_iter()
+        .filter(|task| filter.matches(task))
+        .collect()
 }
 
 pub enum CompletionStatus {
@@ -20,7 +41,7 @@ pub enum CompletionStatus {
 }
 
 pub fn complete_task(identifier: Uuid) -> CompletionStatus {
-    let mut tasks = match storage::load(storage::DataPath::default()) {
+    let mut tasks = match load_tasks() {
         Ok(tasks) => tasks,
         Err(e) => return CompletionStatus::StorageError(e),
     };
@@ -35,7 +56,7 @@ pub fn complete_task(identifier: Uuid) -> CompletionStatus {
 
     task.completed_at = Some(Utc::now());
 
-    match storage::store(storage::DataPath::default(), &tasks) {
+    match store_tasks(tasks) {
         Ok(_) => CompletionStatus::Marked,
         Err(e) => CompletionStatus::StorageError(e),
     }
@@ -48,7 +69,7 @@ pub enum EditStatus {
 }
 
 pub fn edit_task(task_patch: TaskPatch) -> EditStatus {
-    let mut tasks = match storage::load(storage::DataPath::default()) {
+    let mut tasks = match load_tasks() {
         Ok(tasks) => tasks,
         Err(e) => return EditStatus::StorageError(e),
     };
@@ -59,7 +80,7 @@ pub fn edit_task(task_patch: TaskPatch) -> EditStatus {
 
     task_patch.apply_to(task);
 
-    match storage::store(storage::DataPath::default(), &tasks) {
+    match store_tasks(tasks) {
         Ok(_) => EditStatus::Updated,
         Err(e) => EditStatus::StorageError(e),
     }
