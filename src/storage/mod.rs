@@ -1,8 +1,11 @@
-mod data_path;
-pub mod file;
-pub mod load;
-pub mod store;
+mod file;
+mod load;
+mod paths;
+mod store;
+mod sync;
 
-pub use data_path::DataPath;
 pub use load::load;
+pub use paths::DataPath;
+pub use paths::RepoPath;
 pub use store::{append, store};
+pub use sync::sync;

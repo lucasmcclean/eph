@@ -37,6 +37,9 @@ enum Command {
 
     #[command(visible_alias = "l")]
     List(commands::List),
+
+    #[command(visible_alias = "s")]
+    Sync(commands::Sync),
 }
 
 fn main() {
@@ -48,5 +51,6 @@ fn main() {
         Command::Done(done) => done.run(),
         Command::Edit(edit) => edit.run(),
         Command::List(list) => list.run(),
+        Command::Sync(sync) => sync.run(),
     }
 }
