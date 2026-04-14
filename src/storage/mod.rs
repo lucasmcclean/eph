@@ -1,4 +1,5 @@
 mod file;
+mod git;
 mod load;
 mod paths;
 mod store;
