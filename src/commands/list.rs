@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 use clap::Parser;
 
 use crate::{
-    app::tasks::filter_tasks,
+    app::local,
     task::{Priority, TaskFilter},
 };
 
@@ -38,7 +38,7 @@ impl List {
             .with_contexts(&self.contexts)
             .with_priorities(self.priorities());
 
-        let filtered = filter_tasks(&task_filter);
+        let filtered = local::filter_tasks(&task_filter);
 
         for task in filtered {
             println!("{}", task);

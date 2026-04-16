@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::app::tasks::{SyncStatus, sync_tasks};
+use crate::app::remote::{self, SyncStatus};
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
@@ -9,7 +9,7 @@ pub struct Sync {}
 
 impl Sync {
     pub fn run(self) {
-        match sync_tasks() {
+        match remote::sync_tasks() {
             SyncStatus::Synced => println!("Successfully synced"),
             SyncStatus::Failed { msg } => println!("Sync failed: {}", msg),
         }

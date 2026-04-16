@@ -6,54 +6,7 @@ use git2::{
     Signature,
 };
 
-use crate::storage::sync_error::SyncError;
-
-pub(crate) fn get_or_init_local_repo<P: AsRef<Path>>(
-    path: P,
-    repo_url: &str,
-) -> Result<Repository, SyncError> {
-    let path = path.as_ref();
-
-    if !path.exists() {
-        fs::create_dir_all(path)?;
-    }
-
-    let repo = match Repository::open(path) {
-        Ok(repo) => repo,
-        Err(_) => Repository::init(path)?,
-    };
-
-    if repo.find_remote("origin").is_err() {
-        repo.remote("origin", repo_url)?;
-        repo.remote_add_fetch("origin", "+refs/heads/*:refs/remotes/origin/*")?;
-    }
-
-    Ok(repo)
-}
-
-pub(crate) fn ensure_local_branch_exists(repo: &Repository, branch: &str) -> Result<(), SyncError> {
-    if repo.find_branch(branch, BranchType::Local).is_ok() {
-        return Ok(());
-    }
-
-    if let Ok(head) = repo.head()
-        && let Ok(commit) = head.peel_to_commit()
-    {
-        repo.branch(branch, &commit, true)?;
-        return Ok(());
-    }
-
-    repo.set_head(&format!("refs/heads/{}", branch))?;
-    repo.checkout_head(None)?;
-
-    Ok(())
-}
-
-pub(crate) fn remote_head_oid(repo: &Repository, branch: &str) -> Option<git2::Oid> {
-    repo.find_reference(&format!("refs/remotes/origin/{}", branch))
-        .ok()
-        .and_then(|r| r.target())
-}
+use crate::sync::errors::SyncError;
 
 pub fn fetch(repo: &Repository, branch: &str) -> Result<(), SyncError> {
     let mut remote = repo.find_remote("origin")?;
@@ -128,6 +81,53 @@ pub(crate) fn push(
     )?;
 
     Ok(())
+}
+
+pub(crate) fn get_or_init_local_repo<P: AsRef<Path>>(
+    path: P,
+    repo_url: &str,
+) -> Result<Repository, SyncError> {
+    let path = path.as_ref();
+
+    if !path.exists() {
+        fs::create_dir_all(path)?;
+    }
+
+    let repo = match Repository::open(path) {
+        Ok(repo) => repo,
+        Err(_) => Repository::init(path)?,
+    };
+
+    if repo.find_remote("origin").is_err() {
+        repo.remote("origin", repo_url)?;
+        repo.remote_add_fetch("origin", "+refs/heads/*:refs/remotes/origin/*")?;
+    }
+
+    Ok(repo)
+}
+
+pub(crate) fn ensure_local_branch_exists(repo: &Repository, branch: &str) -> Result<(), SyncError> {
+    if repo.find_branch(branch, BranchType::Local).is_ok() {
+        return Ok(());
+    }
+
+    if let Ok(head) = repo.head()
+        && let Ok(commit) = head.peel_to_commit()
+    {
+        repo.branch(branch, &commit, true)?;
+        return Ok(());
+    }
+
+    repo.set_head(&format!("refs/heads/{}", branch))?;
+    repo.checkout_head(None)?;
+
+    Ok(())
+}
+
+pub(crate) fn remote_head_oid(repo: &Repository, branch: &str) -> Option<git2::Oid> {
+    repo.find_reference(&format!("refs/remotes/origin/{}", branch))
+        .ok()
+        .and_then(|r| r.target())
 }
 
 fn add_credentials<'a>(

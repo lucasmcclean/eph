@@ -1,9 +1,12 @@
 mod app;
 mod commands;
 mod storage;
+mod sync;
 mod task;
 
 use clap::{Parser, Subcommand};
+
+pub const BIN_NAME: &str = env!("CARGO_BIN_NAME");
 
 #[derive(Debug, Parser)]
 #[command(name = "eph")]

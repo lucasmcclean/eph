@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::app;
+use crate::app::local;
 use crate::task::{Priority, Task};
 
 #[derive(Clone, Debug, Parser)]
@@ -32,7 +32,7 @@ impl Add {
         let task = Task::new(self.title, self.context, self.priority)
             .with_tags(self.tags)
             .with_description(self.description);
-        match app::add_task(task) {
+        match local::add_task(task) {
             Ok(_) => println!("Task successfully added"),
             Err(err) => println!("{}", err),
         }

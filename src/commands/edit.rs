@@ -2,7 +2,7 @@ use clap::Parser;
 use uuid::Uuid;
 
 use crate::{
-    app::{self, EditStatus},
+    app::local::{self, EditStatus},
     task::{Patch, Priority, TaskPatch, VecPatch},
 };
 
@@ -85,7 +85,7 @@ impl Edit {
             .description(description)
             .tags(tags);
 
-        match app::edit_task(patch) {
+        match local::edit_task(patch) {
             EditStatus::Updated => println!("Task updated."),
             EditStatus::NotFound => eprintln!("Task not found."),
             EditStatus::StorageError(err) => {

@@ -1,13 +1,8 @@
+mod data_path;
 mod file;
-mod git;
 mod load;
-mod paths;
 mod store;
-mod sync;
-mod sync_error;
 
+pub use data_path::DataPath;
 pub use load::load;
-pub use paths::DataPath;
-pub use paths::RepoPath;
 pub use store::{append, store};
-pub use sync::sync;
