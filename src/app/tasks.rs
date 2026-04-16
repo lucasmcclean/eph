@@ -4,7 +4,7 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use crate::{
-    storage,
+    storage::{self, sync},
     task::{Task, TaskFilter, TaskPatch},
 };
 
@@ -84,4 +84,18 @@ pub fn edit_task(task_patch: TaskPatch) -> EditStatus {
         Ok(_) => EditStatus::Updated,
         Err(e) => EditStatus::StorageError(e),
     }
+}
+
+pub enum SyncStatus {
+    Synced,
+    Failed { msg: String },
+}
+
+pub fn sync_tasks() -> SyncStatus {
+    if let Err(err) = sync(storage::RepoPath::default(), storage::DataPath::default()) {
+        return SyncStatus::Failed {
+            msg: err.to_string(),
+        };
+    }
+    SyncStatus::Synced
 }

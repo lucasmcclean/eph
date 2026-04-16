@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::storage::{DataPath, RepoPath, sync};
+use crate::app::tasks::{SyncStatus, sync_tasks};
 
 #[derive(Clone, Debug, Parser)]
 #[command(name = "eph")]
@@ -9,8 +9,9 @@ pub struct Sync {}
 
 impl Sync {
     pub fn run(self) {
-        if let Err(err) = sync(RepoPath::default(), DataPath::default()) {
-            println!("{}", err);
+        match sync_tasks() {
+            SyncStatus::Synced => println!("Successfully synced"),
+            SyncStatus::Failed { msg } => println!("Sync failed: {}", msg),
         }
     }
 }
