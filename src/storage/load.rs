@@ -14,5 +14,12 @@ pub fn load<P: AsRef<Path>>(path: P) -> Result<Vec<Task>, Box<dyn std::error::Er
     };
 
     let task_file: TaskFile = toml::from_str(&tasks_toml)?;
-    Ok(task_file.tasks)
+
+    let tasks = task_file
+        .tasks
+        .into_iter()
+        .map(|(id, data)| Task::from_data(id, data))
+        .collect();
+
+    Ok(tasks)
 }

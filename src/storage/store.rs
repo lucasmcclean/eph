@@ -12,9 +12,14 @@ pub fn store<P: AsRef<Path>>(path: P, tasks: &[Task]) -> Result<(), Box<dyn std:
         fs::create_dir_all(parent)?;
     }
 
-    let task_file = TaskFile {
-        tasks: tasks.to_vec(),
-    };
+    let mut map = std::collections::HashMap::new();
+
+    for task in tasks {
+        let (id, data) = task.clone().into();
+        map.insert(id, data);
+    }
+
+    let task_file = TaskFile { tasks: map };
 
     let tasks_toml = toml::to_string_pretty(&task_file)?;
 

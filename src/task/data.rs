@@ -1,15 +1,8 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::task::{Priority, Task};
-
-#[derive(Debug, Deserialize, Serialize)]
-pub(crate) struct TaskFile {
-    pub tasks: HashMap<Uuid, TaskData>,
-}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TaskData {

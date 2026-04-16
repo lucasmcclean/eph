@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::task::Priority;
+use crate::{storage::TaskData, task::Priority};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Task {
@@ -44,6 +44,19 @@ impl Task {
 
     pub fn id(&self) -> Uuid {
         self.id
+    }
+
+    pub fn from_data(id: Uuid, data: TaskData) -> Self {
+        Self {
+            id,
+            title: data.title,
+            context: data.context,
+            priority: data.priority,
+            tags: data.tags,
+            description: data.description,
+            created_at: data.created_at,
+            completed_at: data.completed_at,
+        }
     }
 }
 

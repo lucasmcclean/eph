@@ -4,5 +4,6 @@ mod load;
 mod store;
 
 pub use data_path::DataPath;
+pub use file::TaskData;
 pub use load::load;
 pub use store::{append, store};
