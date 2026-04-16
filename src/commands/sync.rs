@@ -9,6 +9,8 @@ pub struct Sync {}
 
 impl Sync {
     pub fn run(self) {
-        sync(RepoPath::default(), DataPath::default()).unwrap();
+        if let Err(err) = sync(RepoPath::default(), DataPath::default()) {
+            println!("{}", err);
+        }
     }
 }

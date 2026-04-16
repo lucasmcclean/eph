@@ -4,6 +4,7 @@ mod load;
 mod paths;
 mod store;
 mod sync;
+mod sync_error;
 
 pub use load::load;
 pub use paths::DataPath;

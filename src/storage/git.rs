@@ -1,13 +1,17 @@
-use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-use git2::{BranchType, FetchOptions, Oid, PushOptions, RemoteCallbacks, Repository, Signature};
+use git2::{
+    BranchType, Cred, CredentialType, FetchOptions, Oid, PushOptions, RemoteCallbacks, Repository,
+    Signature,
+};
 
-pub(crate) fn get_or_init_repo<P: AsRef<Path>>(
+use crate::storage::sync_error::SyncError;
+
+pub(crate) fn get_or_init_local_repo<P: AsRef<Path>>(
     path: P,
     repo_url: &str,
-) -> Result<Repository, Box<dyn Error>> {
+) -> Result<Repository, SyncError> {
     let path = path.as_ref();
 
     if !path.exists() {
@@ -21,12 +25,13 @@ pub(crate) fn get_or_init_repo<P: AsRef<Path>>(
 
     if repo.find_remote("origin").is_err() {
         repo.remote("origin", repo_url)?;
+        repo.remote_add_fetch("origin", "+refs/heads/*:refs/remotes/origin/*")?;
     }
 
     Ok(repo)
 }
 
-pub(crate) fn ensure_branch_exists(repo: &Repository, branch: &str) -> Result<(), Box<dyn Error>> {
+pub(crate) fn ensure_local_branch_exists(repo: &Repository, branch: &str) -> Result<(), SyncError> {
     if repo.find_branch(branch, BranchType::Local).is_ok() {
         return Ok(());
     }
@@ -39,6 +44,7 @@ pub(crate) fn ensure_branch_exists(repo: &Repository, branch: &str) -> Result<()
     }
 
     repo.set_head(&format!("refs/heads/{}", branch))?;
+    repo.checkout_head(None)?;
 
     Ok(())
 }
@@ -49,23 +55,24 @@ pub(crate) fn remote_head_oid(repo: &Repository, branch: &str) -> Option<git2::O
         .and_then(|r| r.target())
 }
 
-pub(crate) fn fetch(repo: &Repository, branch: &str) -> Result<(), Box<dyn Error>> {
+pub fn fetch(repo: &Repository, branch: &str) -> Result<(), SyncError> {
     let mut remote = repo.find_remote("origin")?;
 
     let mut fetch_options = FetchOptions::new();
-    let callbacks = RemoteCallbacks::new();
-    fetch_options.remote_callbacks(callbacks);
+    fetch_options.remote_callbacks(add_credentials(RemoteCallbacks::new(), repo));
 
     remote.fetch(&[branch], Some(&mut fetch_options), None)?;
 
     Ok(())
 }
 
-pub(crate) fn commit(repo: &Repository, data_path: &Path) -> Result<(), Box<dyn Error>> {
+pub(crate) fn commit(repo: &Repository, data_path: &Path) -> Result<(), SyncError> {
     let filename = data_path
         .file_name()
         .and_then(|n| n.to_str())
-        .expect("Data path must include a file name.");
+        .ok_or(SyncError::Git(git2::Error::from_str(
+            "missing data file to commit",
+        )))?;
     let contents = fs::read(data_path)?;
 
     let blob_oid = repo.blob(&contents)?;
@@ -80,7 +87,10 @@ pub(crate) fn commit(repo: &Repository, data_path: &Path) -> Result<(), Box<dyn 
 
     let parent_commit = repo.head().ok().and_then(|h| h.peel_to_commit().ok());
 
-    let parents: Vec<&git2::Commit> = parent_commit.as_ref().map(|c| vec![c]).unwrap_or_default();
+    let parents = match &parent_commit {
+        Some(c) => vec![c],
+        None => vec![],
+    };
 
     repo.commit(
         Some("HEAD"),
@@ -98,17 +108,19 @@ pub(crate) fn push(
     repo: &Repository,
     branch: &str,
     expected: Option<Oid>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), SyncError> {
     let current = remote_head_oid(repo, branch);
 
     if current != expected {
-        return Err("remote changed since fetch".into());
+        return Err(SyncError::Git(git2::Error::from_str(
+            "remote branch diverged",
+        )));
     }
 
     let mut remote = repo.find_remote("origin")?;
 
     let mut push_options = PushOptions::new();
-    push_options.remote_callbacks(RemoteCallbacks::new());
+    push_options.remote_callbacks(add_credentials(RemoteCallbacks::new(), repo));
 
     remote.push(
         &[&format!("+refs/heads/{}:refs/heads/{}", branch, branch)],
@@ -116,4 +128,28 @@ pub(crate) fn push(
     )?;
 
     Ok(())
+}
+
+fn add_credentials<'a>(
+    mut callbacks: RemoteCallbacks<'a>,
+    repo: &'a Repository,
+) -> RemoteCallbacks<'a> {
+    let config = repo.config().ok();
+
+    callbacks.credentials(move |url, username_from_url, allowed_types| {
+        if let Some(config) = &config
+            && let Ok(cred) = Cred::credential_helper(config, url, username_from_url)
+        {
+            return Ok(cred);
+        }
+
+        if allowed_types.contains(CredentialType::SSH_KEY) {
+            let user = username_from_url.unwrap_or("git");
+            return Cred::ssh_key_from_agent(user);
+        }
+
+        Err(git2::Error::from_str("ssh authentication failed"))
+    });
+
+    callbacks
 }
