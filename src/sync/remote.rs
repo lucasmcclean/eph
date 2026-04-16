@@ -40,7 +40,7 @@ pub(crate) fn commit(repo: &Repository, data_path: &Path) -> Result<(), SyncErro
 
     let parent_commit = repo.head().ok().and_then(|h| h.peel_to_commit().ok());
 
-    let parents = match &parent_commit {
+    let parents: Vec<&git2::Commit> = match parent_commit.as_ref() {
         Some(c) => vec![c],
         None => vec![],
     };
@@ -64,7 +64,9 @@ pub(crate) fn push(
 ) -> Result<(), SyncError> {
     let current = remote_head_oid(repo, branch);
 
-    if current != expected {
+    if let Some(expected) = expected
+        && current != Some(expected)
+    {
         return Err(SyncError::Git(git2::Error::from_str(
             "remote branch diverged",
         )));
@@ -119,8 +121,6 @@ pub(crate) fn ensure_local_branch_exists(repo: &Repository, branch: &str) -> Res
     }
 
     repo.set_head(&format!("refs/heads/{}", branch))?;
-    repo.checkout_head(None)?;
-
     Ok(())
 }
 
