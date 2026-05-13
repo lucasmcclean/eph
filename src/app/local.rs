@@ -24,13 +24,13 @@ pub fn add_task(task: Task) -> Result<(), Box<dyn Error>> {
     append_task(task)
 }
 
-pub fn filter_tasks(filter: &TaskFilter) -> Vec<Task> {
-    let tasks = load_tasks().unwrap();
+pub fn filter_tasks(filter: &TaskFilter) -> Result<Vec<Task>, Box<dyn Error>> {
+    let tasks = load_tasks()?;
 
-    tasks
+    Ok(tasks
         .into_iter()
         .filter(|task| filter.matches(task))
-        .collect()
+        .collect())
 }
 
 pub enum CompletionStatus {

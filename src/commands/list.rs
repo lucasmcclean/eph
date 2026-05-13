@@ -38,10 +38,13 @@ impl List {
             .with_contexts(&self.contexts)
             .with_priorities(self.priorities());
 
-        let filtered = local::filter_tasks(&task_filter);
-
-        for task in filtered {
-            println!("{}", task);
+        match local::filter_tasks(&task_filter) {
+            Ok(tasks) => {
+                for task in tasks {
+                    println!("{}", task);
+                }
+            }
+            Err(err) => eprintln!("Failed to load tasks: {}", err),
         }
     }
 
